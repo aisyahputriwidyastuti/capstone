@@ -37,7 +37,8 @@ for col in numeric_cols:
     df = remove_outliers_iqr(df, col)
 
 cat_cols = df.select_dtypes(include='object').columns.tolist()
-cat_cols.remove('NObeyesdad')
+if 'NObeyesdad' in cat_cols:
+    cat_cols.remove('NObeyesdad')
 le = LabelEncoder()
 for col in cat_cols:
     df[col] = le.fit_transform(df[col])
@@ -47,18 +48,18 @@ df['NObeyesdad'] = target_encoder.fit_transform(df['NObeyesdad'])
 X = df.drop('NObeyesdad', axis=1)
 y = df['NObeyesdad']
 
-# SMOTE
+# === SMOTE ===
 st.write("Distribusi kelas sebelum SMOTE:", y.value_counts().to_dict())
 smote = SMOTE(random_state=42)
-X_res, y_res = smote.fit_resample(X, y)
+X_res, y_res = smote.fit_resample(X, y)  # ✅ FIX: hanya X, y
 st.write("Distribusi kelas setelah SMOTE:", pd.Series(y_res).value_counts().to_dict())
 
-# Standardisasi
+# === Standardisasi ===
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X_res)
 X_scaled = pd.DataFrame(X_scaled, columns=X.columns)
 
-# Split data
+# === Split data ===
 X_train, X_test, y_train, y_test = train_test_split(
     X_scaled, y_res, test_size=0.2, stratify=y_res, random_state=42
 )
@@ -160,7 +161,6 @@ st.write(f"Model terbaik (tuned): {best_tuned['Model']} (F1 = {best_tuned['F1 Sc
 st.write(f"Peningkatan F1 Score: {improvement:.4f}")
 
 if improvement > 0:
-    st.success(" Hyperparameter tuning berhasil meningkatkan performa model!")
+    st.success("🎉 Hyperparameter tuning berhasil meningkatkan performa model!")
 else:
-    st.warning("Hyperparameter tuning tidak meningkatkan performa secara signifikan.")
-
+    st.warning("⚠️ Hyperparameter tuning tidak meningkatkan performa secara signifikan.")
